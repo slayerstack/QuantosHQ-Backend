@@ -7,14 +7,6 @@ dotenv.config()
 
 const app = express()
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
-app.options('*', cors())
-app.use(express.json())
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -24,6 +16,9 @@ app.use((req, res, next) => {
   }
   next()
 })
+
+app.use(cors({ origin: '*' }))
+app.use(express.json())
 
 app.get('/', (req, res) => {
     res.json({ message: 'Quantos API is running!' })
@@ -87,12 +82,4 @@ Use simple language. No jargon. Like explaining to a friend.`
 
     } catch (error) {
         console.error(error)
-        const explanation = `Your ${name} strategy had a win rate of ${win_rate}% with a max drawdown of ${drawdown}%. The worst period was ${worst_month}. Add Claude API credits for full AI analysis.`
-        res.json({ strategy: name, explanation: explanation })
-    }
-})
-
-const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-    console.log(`Quantos server running on port ${PORT}`)
-})
+        const explanation = `Your ${name} strategy had a win rate of ${win_rate}
