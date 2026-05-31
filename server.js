@@ -29,13 +29,18 @@ app.post('/analyse', async (req, res) => {
 
     try {
         const response = await axios.post(
-            'https://api.anthropic.com/v1/messages',
+            'https://api.groq.com/openai/v1/chat/completions',
             {
-                model: 'claude-sonnet-4-20250514',
+                model: 'llama-3.3-70b-versatile',
                 max_tokens: 1000,
-                messages: [{
-                    role: 'user',
-                    content: `You are a trading coach analysing a failed trading strategy.
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a trading coach who explains why trading strategies fail in simple plain English. Be specific, helpful and clear. No jargon.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Analyse this failed trading strategy:
 
 Strategy: ${name}
 Instrument: ${instrument || 'Not specified'}
@@ -67,19 +72,24 @@ MARKET CONDITIONS WHERE IT WORKS:
 [When this strategy performs well]
 
 Use simple language. No jargon. Like explaining to a friend.`
-                }]
+                    }
+                ]
             },
             {
                 headers: {
-                    'x-api-key': process.env.ANTHROPIC_API_KEY,
-                    'anthropic-version': '2023-06-01',
-                    'content-type': 'application/json'
+                    'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
                 }
             }
         )
-        const explanation = response.data.content[0].text
+        const explanation = response.data.choices[0].message.content
         res.json({ strategy: name, explanation: explanation })
 
     } catch (error) {
         console.error(error)
-        const explanation = `Your ${name} strategy had a win rate of ${win_rate}
+        const explanation = `Your ${name} strategy had a win rate of ${win_rate}% with a max drawdown of ${drawdown}%. The worst period was ${worst_month}. Please try again.`
+        res.json({ strategy: name, explanation: explanation })
+    }
+})
+
+module.exports = app
